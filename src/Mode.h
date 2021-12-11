@@ -582,7 +582,18 @@ inline byte_vec_t pack_native_tile(const index_vec_t& data, Mode mode, unsigned 
 
   } else if (mode == Mode::pce_sprite) {
     for (unsigned p = 0; p < 4; ++p) {
-      auto plane = make_1bit_planes(data, p, false);
+      // PCE sprite data was previously generated incorrectly, it seems.
+      // Firstly, the call to make_1bit_planes here should specify 'reverse=true'.
+      // Second, sprite data is stored as 16-bit words in low/high order, meaning the byte pairs should
+      // be swapped here in order to be correct.
+      auto plane = make_1bit_planes(data, p, true);
+      int datalength = plane.size();
+      for (int i = 0; i < datalength-1; i += 2)
+      {
+        auto tmp = plane[i];
+        plane[i] = plane[i+1];
+        plane[i+1] = tmp;
+      }
       nd.insert(nd.end(), plane.begin(), plane.end());
     }
   }
